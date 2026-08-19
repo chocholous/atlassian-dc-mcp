@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "atlassian-dc": {
+      "command": "uvx",
+      "args": [
+        "mcp-atlassian@0.23.0",
+        "--env-file",
+        "/absolute/path/to/this/repo/.env"
+      ]
+    }
+  }
+}

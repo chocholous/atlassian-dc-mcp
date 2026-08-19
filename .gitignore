@@ -1,0 +1,8 @@
+# Tajemství — NIKDY necommitovat
+.env
+
+# macOS
+.DS_Store
+
+# MCP config obsahuje absolutní cestu — šablona je .mcp.example.json
+.mcp.json
