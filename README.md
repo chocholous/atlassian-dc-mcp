@@ -1,14 +1,37 @@
 # Atlassian Data Center — MCP
 
 Minimální repo pro práci s **self-hosted Jira Data Center a Confluence
-Data Center** z Claude Code, čistě přes MCP server
+Data Center** čistě přes MCP server
 [mcp-atlassian](https://github.com/sooperset/mcp-atlassian). Žádné vlastní
 CLI ani přímá API volání — jen konfigurace serveru a skill.
 
-Změřená fakta a pasti Data Center jsou ve skillu `atlassian-dc`, který si Claude
-načte sám.
+## Co repo umožňuje
 
-## Nastavení
+- **Číst i psát Jira DC**: issues, JQL, sprinty, boardy, epics, worklogy,
+  verze, komentáře — všech 98 nástrojů mcp-atlassian
+  ([přehled nástrojů](https://mcp-atlassian.soomiles.com/docs/tools-reference.md)).
+- **Číst i psát Confluence DC**: stránky, CQL, komentáře, přílohy, štítky.
+- **Změřená fakta o DC API** (skill `atlassian-dc`): čím se Data Center liší
+  od Cloudu, které cesty vrací 403/404 a proč, pasti createmeta/epic —
+  změřeno proti živým instancím, ne opsáno z dokumentace.
+
+Auth je Personal Access Token — pro Server/DC jediná podporovaná cesta
+([mcp-atlassian: authentication](https://mcp-atlassian.soomiles.com/docs/authentication.md)).
+
+## Kde to použiješ
+
+| Nástroj | Co z repa využiješ | Jak |
+|---|---|---|
+| **Claude Code** | MCP server + skill | setup níže; `.mcp.json` je projektová MCP konfigurace ([docs: MCP](https://code.claude.com/docs/en/mcp)), skill se načítá z `.claude/skills/` ([docs: Skills](https://code.claude.com/docs/en/skills)) |
+| **Claude Desktop** | MCP server | tentýž `uvx` příkaz v `claude_desktop_config.json` ([návod](https://modelcontextprotocol.io/quickstart/user)) — snippet níže |
+| **claude.ai** | skill | složku `.claude/skills/atlassian-dc/` zabal do zipu a nahraj v *Customize → Skills* ([návod](https://support.claude.com/en/articles/12512180-use-skills-in-claude)); vyžaduje zapnutý code execution |
+| **Cursor, VS Code a jiní MCP klienti** | MCP server | stejná `mcpServers` konfigurace ([mcp-atlassian: configuration](https://mcp-atlassian.soomiles.com/docs/configuration.md)) |
+
+Nechceš klonovat? Plugin pro Claude Code (skill + MCP jedním příkazem) je
+v sesterském repu
+[atlassian-dc-plugin](https://github.com/chocholous/atlassian-dc-plugin).
+
+## Nastavení (Claude Code)
 
 ```bash
 cp .env.example .env && chmod 600 .env    # doplň URL a tokeny
@@ -25,6 +48,31 @@ Personal Access Token si vytvoř ve webovém UI (v DC má povinnou expiraci):
 
 Po změně `.env` nebo `.mcp.json` restartuj Claude Code.
 
+## Nastavení (Claude Desktop)
+
+Do `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS)
+resp. `%APPDATA%\Claude\claude_desktop_config.json` (Windows) — soubor otevřeš
+přes *Settings → Developer → Edit Config*
+([návod](https://modelcontextprotocol.io/quickstart/user)):
+
+```json
+{
+  "mcpServers": {
+    "atlassian-dc": {
+      "command": "uvx",
+      "args": ["mcp-atlassian@0.23.0", "--env-file", "/absolutni/cesta/k/.env"]
+    }
+  }
+}
+```
+
+Desktop nespouští servery ve tvém shellu — když server nenastartuje, zadej
+absolutní cestu k `uvx` (`which uvx`).
+
+mcp-atlassian umí i HTTP transport (SSE / streamable-http) pro vzdálené
+nasazení ([docs](https://mcp-atlassian.soomiles.com/docs/http-transport.md)) —
+prakticky ale DC bývá v interní síti, takže lokální stdio je obvyklá cesta.
+
 ## Ověření
 
 `claude mcp list` musí ukázat `atlassian-dc ✔ Connected` — ale pozor,
@@ -40,3 +88,12 @@ a selže až první volání. Skutečný důkaz je úspěšné první čtecí vo
 
 Proti Data Center nefunguje — je Cloud-only, jede nad `/rest/api/3`, které DC
 nemá (ověřeno: 0 cest pod `/api/3`, 252 pod `/api/2`). Proto MCP.
+
+## Sesterská repa
+
+| Repo | Obsah |
+|---|---|
+| [atlassian-dc-ops](https://github.com/chocholous/atlassian-dc-ops) | vše — MCP + skill + CLI skripty (referenční) |
+| [atlassian-dc-plugin](https://github.com/chocholous/atlassian-dc-plugin) | totéž + marketplace s pluginem pro Claude Code |
+| **atlassian-dc-mcp** (tady) | jen MCP + skill, bez CLI |
+| [atlassian-dc-cli](https://github.com/chocholous/atlassian-dc-cli) | jen CLI/REST + skill, bez MCP |
